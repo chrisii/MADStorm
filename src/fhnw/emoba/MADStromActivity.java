@@ -1,5 +1,6 @@
-package ch.cvarta;
+package fhnw.emoba;
 
+import ch.cvarta.R;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Build;
@@ -14,20 +15,25 @@ public class MADStromActivity extends Activity {
 	View connectView;
 	View controlView;
 	
+	/** A handle to the thread that's actually running the animation. */
+	
+	/** A handle to the View in which the game is running. */
+	
     // Intent request codes
     private static final int REQUEST_CONNECT_DEVICE = 1;
-    private static final int REQUEST_ENABLE_BT = 2;
+    @SuppressWarnings("unused")
+	private static final int REQUEST_ENABLE_BT = 2;
 	
 	
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		//creation of Views to accelerate Content-Switching
-		connectView = findViewById(R.layout.connectview);
-		controlView = findViewById(R.layout.controlview);
 		//set initial View to the connection view
-		setContentView(connectView);
+		setContentView(R.layout.connectview);
+		//creation of Views to accelerate Content-Switching
+		
+		
 		
 		onEmulator = "sdk".equals(Build.PRODUCT);
 
@@ -36,6 +42,10 @@ public class MADStromActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
+				
+				if (onEmulator){
+					//TODO: Switch to ControlView
+				}
 
 			}
 		});
