@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="hello">Hello World, MADStromActivity!</string>
+    <string name="app_name">MADStrom</string>
+    <string name="text_welcome_content_description">Welcome Text</string>
+    <string name="connect_button_text">Connect</string>
+
+</resources>
