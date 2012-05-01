@@ -7,8 +7,10 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 public class MADStromActivity extends Activity {
 	//Flag indicating if application is running in a emulator
@@ -105,7 +107,22 @@ public class MADStromActivity extends Activity {
 				mControlThread.doStart();
 				mConnectView.removeAllViews();
 				mConnectView.invalidate();
+				LinearLayout.LayoutParams mControlViewParams = new LinearLayout.LayoutParams(
+						ViewGroup.LayoutParams.FILL_PARENT,ViewGroup.LayoutParams.FILL_PARENT, 1.0F);
+				mControlView.setLayoutParams(mControlViewParams);
 				mConnectView.addView(mControlView);
+				
+				Button actionButton = new Button(this);
+				actionButton.setText(R.string.action_button);
+				actionButton.setOnClickListener(new Button.OnClickListener() {
+					
+					@Override
+					public void onClick(View v) {
+						// TODO: Real Implementation
+						Toast.makeText(getApplicationContext(), "Action", Toast.LENGTH_LONG).show();
+					}
+				});
+				mConnectView.addView(actionButton);
 			}
 			break;
 		}
