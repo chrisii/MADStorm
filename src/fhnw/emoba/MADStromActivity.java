@@ -1,27 +1,30 @@
 package fhnw.emoba;
 
-import ch.cvarta.R;
+import fhnw.emoba.ControlView.ControlThread;
+import fhnw.emoba.R;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 
 public class MADStromActivity extends Activity {
 	//Flag indicating if application is running in a emulator
 	//emulator implicates no Bluetooth
-	boolean onEmulator;
-	View connectView;
-	View controlView;
+	private boolean onEmulator;
+	
+	LinearLayout mConnectView;
 	
 	/** A handle to the thread that's actually running the animation. */
+	private ControlView mControlView;
 	
 	/** A handle to the View in which the game is running. */
+	private ControlThread mControlThread;
 	
     // Intent request codes
     private static final int REQUEST_CONNECT_DEVICE = 1;
-    @SuppressWarnings("unused")
 	private static final int REQUEST_ENABLE_BT = 2;
 	
 	
@@ -32,8 +35,9 @@ public class MADStromActivity extends Activity {
 		//set initial View to the connection view
 		setContentView(R.layout.connectview);
 		//creation of Views to accelerate Content-Switching
-		
-		
+		mConnectView = (LinearLayout)findViewById(R.id.LinearLayout);
+		mControlView = new ControlView(getApplicationContext(), null);
+		mControlThread = mControlView.getThread();
 		
 		onEmulator = "sdk".equals(Build.PRODUCT);
 
@@ -45,17 +49,48 @@ public class MADStromActivity extends Activity {
 				
 				if (onEmulator){
 					//TODO: Switch to ControlView
+					onActivityResult(REQUEST_CONNECT_DEVICE, Activity.RESULT_OK, null);
 				}
 
 			}
 		});
 
 	}
+	
+	
+
+    /**
+     * Invoked when the Activity loses user focus.
+     */
+	@Override
+	protected void onPause() {
+		super.onPause();
+		//controlView.getThread().pause();
+	}
+
+
+
+    /**
+     * Notification that something is about to happen, to give the Activity a
+     * chance to save state.
+     * 
+     * @param outState a Bundle into which this Activity should save its state
+     */
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		// TODO Auto-generated method stub
+		super.onSaveInstanceState(outState);
+	}
+
+
 
 	/**
 	 * Handles the result returned by the device list activity. */
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		switch (requestCode) {
+		case REQUEST_ENABLE_BT:
+			//TODO: Show Dialog to enable bluetooth
+			break;
 		case REQUEST_CONNECT_DEVICE:
 			// When DeviceListActivity returns with a device to connect if (resultCode == Activity.RESULT_CANCELED) {
 			// do nothing
@@ -64,8 +99,13 @@ public class MADStromActivity extends Activity {
 			} else if (resultCode == Activity.RESULT_OK) {
 				if (onEmulator) { setEmulationSetup();
 				} else {
-					// TODO: Connect NXT
+					//TODO: Don't know what I should do here ...
 				}
+				// TODO: Switch to ControllView
+				mControlThread.doStart();
+				mConnectView.removeAllViews();
+				mConnectView.invalidate();
+				mConnectView.addView(mControlView);
 			}
 			break;
 		}
@@ -74,5 +114,9 @@ public class MADStromActivity extends Activity {
 	private void setEmulationSetup() {
 		// TODO Auto-generated method stub
 		
+		
+		
 	}
+	
+	
 }
