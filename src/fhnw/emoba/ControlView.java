@@ -152,7 +152,7 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
         
 	}
 	
-    /** Handle to the application context, used to e.g. fetch Drawables. */
+    /** Handle to the application context, used to e.g. fetch drawables. */
     private Context mContext;
     
     /** The thread that actually draws the animation */
