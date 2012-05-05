@@ -67,7 +67,9 @@ public class MADStromActivity extends Activity {
 	@Override
 	protected void onPause() {
 		super.onPause();
-		//controlView.getThread().pause();
+		if (mControlView.getThread().isAlive()){
+			mControlView.getThread().pause();
+		}
 	}
 
 

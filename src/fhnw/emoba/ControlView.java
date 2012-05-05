@@ -14,6 +14,13 @@ import android.view.SurfaceView;
 
 public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 	
+    /*
+     * State-tracking constants
+     */
+    public static final int STATE_PAUSE = 2;
+    public static final int STATE_READY = 3;
+    public static final int STATE_RUNNING = 4;
+	
 	class ControlThread extends Thread{
         /**
          * Current height of the surface/canvas.
@@ -29,6 +36,9 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
          */
         private int mCanvasWidth = 1;
         
+        /** Indicates whether the surface size has been changed*/
+        private boolean mSurfaceSizeChanged = false;
+        
         /** Indicate whether the surface has been created & is ready to draw */
         private boolean mRun = false;
         
@@ -38,18 +48,33 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 		/** Handle to the control - point */
 		private ControlPoint mControlPoint;
 		
+		/** Handle to the home-position */
+		private HomePosition mHomePosition;
+		
+		/** The state of the application. One of Running,Pause */
+		private int mMode;
+		
 		public ControlThread(SurfaceHolder surfaceHolder, Context context,
                 Handler handler){
 			mSurfaceHolder = surfaceHolder;
 		}
-		
+
 		public void doStart(){
 			synchronized (mSurfaceHolder) {
 				mControlPoint = new ControlPoint();
-				
 				//adjust starting position
 				mControlPoint.setX(mCanvasWidth/2);
 				mControlPoint.setY(mCanvasHeight/2);
+				
+				mHomePosition = new HomePosition();
+				mHomePosition.setmX(mCanvasWidth/2);
+				mHomePosition.setmY(mCanvasHeight/2);
+			}
+		}
+		
+		public void pause(){
+			synchronized (mSurfaceHolder) {
+				if (mMode == STATE_RUNNING) setState(STATE_PAUSE);
 			}
 		}
 		
@@ -62,7 +87,11 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 				try {
 					c = mSurfaceHolder.lockCanvas(null);
 					synchronized(mSurfaceHolder){
+						if (mMode == STATE_RUNNING){
+						}
 						doDraw(c);
+						mSurfaceSizeChanged = false;
+						
 					}
 				}finally{
 					// do this in a finally so that if an exception is thrown
@@ -82,6 +111,7 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 			synchronized (mSurfaceHolder) {
 				mCanvasWidth = width;
 				mCanvasHeight = height;
+				mSurfaceSizeChanged = true;
 			}
 		}
 
@@ -95,6 +125,12 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 		 */
 		public void setRunning(boolean b) {
 			mRun = b;
+		}
+		
+		public void setState (int mode){
+			synchronized (mSurfaceHolder) {
+				mMode = mode;
+			}
 		}
 		
 		public boolean doTouchEvent(MotionEvent event){
@@ -111,6 +147,7 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 			//Draw the Control Point
 			canvas.drawColor(Color.BLACK);
 			mControlPoint.draw(canvas);
+			mHomePosition.draw(canvas);
 		}
         
 	}
@@ -194,7 +231,7 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 		
 		
 		public ControlPoint() {
-			this.position = new PointF(0, 0);
+			this.position = new PointF(-1, -1);
 			style = new Paint();
 			style.setColor(COLOR);
 			style.setStyle(Paint.Style.FILL);
@@ -248,12 +285,69 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 			this.position.y = y;
 		}
 		
-		private void draw(Canvas canvas){
+		private void draw(Canvas canvas) {
+			if (ControlView.this.getThread().mSurfaceSizeChanged) {
+				setX(ControlView.this.getThread().mCanvasWidth / 2);
+				setY(ControlView.this.getThread().mCanvasHeight / 2);
+			}
 			canvas.drawCircle(position.x, position.y, RADIUS, style);
 		}
 		
-		
-		
 	}
 
+	class HomePosition{
+		private Paint style;
+		private final static float RADIUS = 25;
+		private final static float WIDTH = 5;
+		private final static int COLOR = Color.GRAY;
+		private float mX;
+		private float mY;
+		
+		public HomePosition(){
+			mX = -1;
+			mY = -1;
+			style = new Paint();
+			style.setStrokeWidth(WIDTH);
+			style.setStyle(Paint.Style.STROKE);
+			style.setColor(COLOR);
+		}
+
+		/**
+		 * @return the mX
+		 */
+		public float getmX() {
+			return mX;
+		}
+
+		/**
+		 * @param mX the mX to set
+		 */
+		public void setmX(float mX) {
+			this.mX = mX;
+		}
+
+		/**
+		 * @return the mY
+		 */
+		public float getmY() {
+			return mY;
+		}
+
+		/**
+		 * @param mY the mY to set
+		 */
+		public void setmY(float mY) {
+			this.mY = mY;
+		}
+		
+		private void draw(Canvas canvas){
+			if (ControlView.this.getThread().mSurfaceSizeChanged){
+				setmX(ControlView.this.getThread().mCanvasWidth/2);
+				setmY(ControlView.this.getThread().mCanvasHeight/2);
+			}
+			canvas.drawCircle(mX, mY, RADIUS, style);
+			
+		}
+		
+	}
 }
