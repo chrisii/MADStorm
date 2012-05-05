@@ -47,8 +47,6 @@ public class MADStromActivity extends Activity {
 
 			@Override
 			public void onClick(View v) {
-				// TODO Auto-generated method stub
-				
 				if (onEmulator){
 					//TODO: Switch to ControlView
 					onActivityResult(REQUEST_CONNECT_DEVICE, Activity.RESULT_OK, null);
@@ -82,7 +80,6 @@ public class MADStromActivity extends Activity {
      */
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
-		// TODO Auto-generated method stub
 		super.onSaveInstanceState(outState);
 	}
 

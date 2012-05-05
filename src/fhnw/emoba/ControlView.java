@@ -6,8 +6,10 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PointF;
+import android.os.Bundle;
 import android.os.Handler;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -17,9 +19,8 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
     /*
      * State-tracking constants
      */
-    public static final int STATE_PAUSE = 2;
-    public static final int STATE_READY = 3;
-    public static final int STATE_RUNNING = 4;
+    public static final int STATE_PAUSE = 0;
+    public static final int STATE_RUNNING = 1;
 	
 	class ControlThread extends Thread{
         /**
@@ -40,7 +41,7 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
         private boolean mSurfaceSizeChanged = false;
         
         /** Indicate whether the surface has been created & is ready to draw */
-        private boolean mRun = false;
+        private volatile boolean mRun = false;
         
 		/** Handle to the surface manager object we interact with */
 		private SurfaceHolder mSurfaceHolder;
@@ -57,18 +58,21 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 		public ControlThread(SurfaceHolder surfaceHolder, Context context,
                 Handler handler){
 			mSurfaceHolder = surfaceHolder;
+			mControlPoint = new ControlPoint();
+			mHomePosition = new HomePosition();
 		}
 
 		public void doStart(){
 			synchronized (mSurfaceHolder) {
-				mControlPoint = new ControlPoint();
+				
 				//adjust starting position
 				mControlPoint.setX(mCanvasWidth/2);
 				mControlPoint.setY(mCanvasHeight/2);
-				
-				mHomePosition = new HomePosition();
+
 				mHomePosition.setmX(mCanvasWidth/2);
 				mHomePosition.setmY(mCanvasHeight/2);
+				
+				setState(STATE_RUNNING);
 			}
 		}
 		
@@ -78,20 +82,28 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 			}
 		}
 		
+		public void unpause(){
+			setState(STATE_RUNNING);
+		}
+		
+		public synchronized void restoreState(Bundle savedState){
+			synchronized (mSurfaceHolder) {
+				setState(STATE_PAUSE);
+			}
+		}
+		
 		
 		@Override
 		public void run() {
-			super.run();
 			while (mRun){
 				Canvas c = null;
 				try {
 					c = mSurfaceHolder.lockCanvas(null);
 					synchronized(mSurfaceHolder){
 						if (mMode == STATE_RUNNING){
+							doDraw(c);
 						}
-						doDraw(c);
-						mSurfaceSizeChanged = false;
-						
+						mSurfaceSizeChanged = false;						
 					}
 				}finally{
 					// do this in a finally so that if an exception is thrown
@@ -104,16 +116,15 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 			}
 		}
 		
-
-		/* Callback invoked when the surface dimensions change. */
-		public void setSurfaceSize(int width, int height) {
-			// synchronized to make sure these all change atomically
+		public Bundle saveState(Bundle map){
 			synchronized (mSurfaceHolder) {
-				mCanvasWidth = width;
-				mCanvasHeight = height;
-				mSurfaceSizeChanged = true;
+				if (map != null){
+					//TODO: values to save
+				}
 			}
+			return map;
 		}
+		
 
 		/**
 		 * Used to signal the thread whether it should be running or not.
@@ -133,6 +144,16 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 			}
 		}
 		
+		/* Callback invoked when the surface dimensions change. */
+		public void setSurfaceSize(int width, int height) {
+			// synchronized to make sure these all change atomically
+			synchronized (mSurfaceHolder) {
+				mCanvasWidth = width;
+				mCanvasHeight = height;
+				mSurfaceSizeChanged = true;
+			}
+		}
+
 		public boolean doTouchEvent(MotionEvent event){
 			mControlPoint.setX(event.getX());
 			mControlPoint.setY(event.getY());
@@ -164,6 +185,7 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 		// register our interest in hearing about changes to our surface
         SurfaceHolder holder = getHolder();
         holder.addCallback(this);
+        mContext = context;
         //create thread only; it's started in surfaceCreated
         thread = new ControlThread(holder, context, new Handler());
 	}
@@ -200,8 +222,12 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 	public void surfaceCreated(SurfaceHolder holder) {
         // start the thread here so that we don't busy-wait in run()
         // waiting for the surface to be created
-        thread.setRunning(true);
-		thread.start();
+		if (thread.getState() == Thread.State.TERMINATED) { 
+            thread = new ControlThread(holder, mContext, new Handler());
+       }
+       thread.setRunning(true);
+       thread.start();
+       thread.setState(STATE_RUNNING);
 		
 	}
 
@@ -221,6 +247,7 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
             } catch (InterruptedException e) {
             }
         }
+        Log.d("ControlThread", Boolean.toString(thread.isAlive()));
 	}
 	
 	class ControlPoint {
