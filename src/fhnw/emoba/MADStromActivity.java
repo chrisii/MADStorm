@@ -3,9 +3,11 @@ package fhnw.emoba;
 import fhnw.emoba.ControlView.ControlThread;
 import fhnw.emoba.R;
 import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -21,14 +23,16 @@ public class MADStromActivity extends Activity {
 	
 	/** A handle to the thread that's actually running the animation. */
 	private ControlView mControlView;
-	
 	/** A handle to the View in which the game is running. */
 	private ControlThread mControlThread;
-	
-    // Intent request codes
+	/** Bluetooth adapter to check if device supports bluetooth*/
+	private BluetoothAdapter mBluetoothAdapter;
+    /** Intent request codes */
     private static final int REQUEST_CONNECT_DEVICE = 1;
+    /** Intent request codes for enabling bluetooth */
 	private static final int REQUEST_ENABLE_BT = 2;
-	
+	/** TAG for logging*/
+	private static final String TAG = MADStromActivity.class.getSimpleName();
 	
 	/** Called when the activity is first created. */
 	@Override
@@ -54,7 +58,6 @@ public class MADStromActivity extends Activity {
 
 			}
 		});
-
 	}
 	
 	
@@ -69,10 +72,49 @@ public class MADStromActivity extends Activity {
 			mControlView.getThread().pause();
 		}
 	}
+	
 
 
 
-    /**
+    /* (non-Javadoc)
+	 * @see android.app.Activity#onStart()
+	 */
+	@Override
+	protected void onStart() {
+		// TODO Mechanism to turn on bluetooth
+		super.onStart();
+		if (!onEmulator){
+			//Emulator does not support bluetoothSetup
+			mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+			if (mBluetoothAdapter == null){
+				//TODO: Device does not support bluetooth
+			}else{
+				//TODO: start activity to enable bluetooth
+				Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+				startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+			}
+			
+		}
+	}
+
+
+
+	/* (non-Javadoc)
+	 * @see android.app.Activity#onDestroy()
+	 */
+	@Override
+	protected void onStop() {
+		super.onStop();
+		// TODO: Disable bluetooth
+		if (BluetoothAdapter.getDefaultAdapter().isEnabled()){
+			Log.v(TAG, "Turning off bluetooth");
+			mBluetoothAdapter.disable();
+		}
+	}
+
+
+
+	/**
      * Notification that something is about to happen, to give the Activity a
      * chance to save state.
      * 
@@ -91,6 +133,11 @@ public class MADStromActivity extends Activity {
 		switch (requestCode) {
 		case REQUEST_ENABLE_BT:
 			//TODO: Show Dialog to enable bluetooth
+			if (resultCode == Activity.RESULT_OK){
+				Log.v(TAG, "Bluetooth has been enabled");
+			}else {
+				Log.v(TAG, "Bluetooth has not been enabled");
+			}
 			break;
 		case REQUEST_CONNECT_DEVICE:
 			// When DeviceListActivity returns with a device to connect if (resultCode == Activity.RESULT_CANCELED) {
@@ -133,6 +180,6 @@ public class MADStromActivity extends Activity {
 		
 		
 	}
-	
+		
 	
 }
