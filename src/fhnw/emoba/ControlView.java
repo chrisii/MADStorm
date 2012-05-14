@@ -83,7 +83,9 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 		}
 		
 		public void unpause(){
-			setState(STATE_RUNNING);
+			synchronized (mSurfaceHolder) {
+				setState(STATE_RUNNING);
+			}
 		}
 		
 		public synchronized void restoreState(Bundle savedState){

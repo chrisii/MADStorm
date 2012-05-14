@@ -1,5 +1,7 @@
 package fhnw.emoba;
 
+import com.bt.DeviceListActivity;
+
 import fhnw.emoba.ControlView.ControlThread;
 import fhnw.emoba.R;
 import android.app.Activity;
@@ -18,9 +20,8 @@ public class MADStromActivity extends Activity {
 	//Flag indicating if application is running in a emulator
 	//emulator implicates no Bluetooth
 	private boolean onEmulator;
-	
+	/** Reference to the main layout in connectview */
 	LinearLayout mConnectView;
-	
 	/** A handle to the thread that's actually running the animation. */
 	private ControlView mControlView;
 	/** A handle to the View in which the game is running. */
@@ -41,7 +42,7 @@ public class MADStromActivity extends Activity {
 		//set initial View to the connection view
 		setContentView(R.layout.connectview);
 		//creation of Views to accelerate Content-Switching
-		mConnectView = (LinearLayout)findViewById(R.id.LinearLayout);
+		mConnectView = (LinearLayout)findViewById(R.id.connect_view_main);
 		mControlView = new ControlView(getApplicationContext(), null);
 		mControlThread = mControlView.getThread();
 		
@@ -54,6 +55,10 @@ public class MADStromActivity extends Activity {
 				if (onEmulator){
 					//TODO: Switch to ControlView
 					onActivityResult(REQUEST_CONNECT_DEVICE, Activity.RESULT_OK, null);
+				}else{
+					//TODO Start new activity to connect to paired bluetooth device
+					Intent btSelectDevice = new Intent(MADStromActivity.this, DeviceListActivity.class);
+					startActivityForResult(btSelectDevice, REQUEST_CONNECT_DEVICE);
 				}
 
 			}
@@ -147,9 +152,14 @@ public class MADStromActivity extends Activity {
 			} else if (resultCode == Activity.RESULT_OK) {
 				if (onEmulator) { setEmulationSetup();
 				} else {
-					//TODO: Don't know what I should do here ...
+					//TODO Connect to Bluetooth Channel with  received device mac adress:
+					// When DeviceListActivity returns with a device to connect
+		            // Get the device MAC address
+		           String address = data.getExtras().getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
+		           Log.v(TAG, "Received Device Address "+ address);
+		           Toast.makeText(this, "Received Device Address "+address, Toast.LENGTH_LONG).show();
 				}
-				// TODO: Switch to ControllView
+				// TODO: bluetooth device has been connected switch to ControllView
 				mControlThread.doStart();
 				mConnectView.removeAllViews();
 				mConnectView.invalidate();
