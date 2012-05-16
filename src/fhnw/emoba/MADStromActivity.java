@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -48,6 +49,46 @@ public class MADStromActivity extends Activity {
 		mConnectView = (LinearLayout)findViewById(R.id.connect_view_main);
 		onEmulator = "sdk".equals(Build.PRODUCT);
 
+
+	}
+	
+	
+
+    /**
+     * Invoked when the Activity loses user focus.
+     */
+	@Override
+	protected void onPause() {
+		super.onPause();
+		if (mControlView.getThread().isAlive()){
+			mControlView.getThread().pause();
+			mControlView.getThread().interrupt();
+		}
+	}
+	
+
+
+
+    /* (non-Javadoc)
+	 * @see android.app.Activity#onStart()
+	 */
+	@Override
+	protected void onStart() {
+		// TODO Mechanism to turn on bluetooth
+		super.onStart();
+		
+		if (!onEmulator){
+			//Emulator does not support bluetoothSetup
+			mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+			if (mBluetoothAdapter == null){
+				//TODO: Device does not support bluetooth
+			}else{
+				//TODO: start activity to enable bluetooth
+				Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+				startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+			}
+		}
+		//Register connect button on Activity
 		((Button)findViewById(R.id.connect_button)).setOnClickListener(new Button.OnClickListener() {
 
 			@Override
@@ -63,49 +104,44 @@ public class MADStromActivity extends Activity {
 
 			}
 		});
-	}
-	
-	
-
-    /**
-     * Invoked when the Activity loses user focus.
-     */
-	@Override
-	protected void onPause() {
-		super.onPause();
-		if (mControlView.getThread().isAlive()){
-			mControlView.getThread().pause();
-		}
-	}
-	
-
-
-
-    /* (non-Javadoc)
-	 * @see android.app.Activity#onStart()
-	 */
-	@Override
-	protected void onStart() {
-		// TODO Mechanism to turn on bluetooth
-		super.onStart();
-		if (!onEmulator){
-			//Emulator does not support bluetoothSetup
-			mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-			if (mBluetoothAdapter == null){
-				//TODO: Device does not support bluetooth
-			}else{
-				//TODO: start activity to enable bluetooth
-				Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-				startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-			}
-		}
+		//add ControlView to Viewflipper
 		mFlipper = (ViewFlipper)findViewById(R.id.flipper);
+		mFlipper.addView(buildControlViewLayout());
+		mControlThread = mControlView.getThread();
+	}
+	
+	/**
+	 * Builds the ControlView by combining the SurfaceView and the action button in a LinearLayout
+	 * @return LinearLayout consisting of the surfaceView and the action button at the bottom
+	 */
+	private View buildControlViewLayout(){
+		//sets up the LinearLayout with the paramters
+		LinearLayout controlViewLayout = new LinearLayout(this);
+		controlViewLayout.setOrientation(LinearLayout.VERTICAL);
+		//adding the SurfaceView to the controlViewLayout
 		mControlView = new ControlView(getApplicationContext(), null);
 		LinearLayout.LayoutParams ControlViewParams = new LinearLayout.LayoutParams(
 					ViewGroup.LayoutParams.FILL_PARENT,
 					ViewGroup.LayoutParams.FILL_PARENT, 1.0F);
-		mFlipper.addView(mControlView, ControlViewParams);
-		mControlThread = mControlView.getThread();
+		controlViewLayout.setLayoutParams(ControlViewParams);
+		//Building the ControlView, adding the action button to the ControlViewLayout
+		controlViewLayout.addView(mControlView,ControlViewParams);
+		Button actionButton = new Button(this);
+		actionButton.setText(R.string.action_button);
+		actionButton.setOnClickListener(new Button.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				// TODO: Real Implementation
+				Toast.makeText(MADStromActivity.this, "Action", Toast.LENGTH_SHORT).show();
+			}
+		});
+		LinearLayout.LayoutParams actionButtonParams = new LinearLayout.LayoutParams(
+				ViewGroup.LayoutParams.FILL_PARENT,
+				ViewGroup.LayoutParams.WRAP_CONTENT);
+
+		controlViewLayout.addView(actionButton, actionButtonParams);
+		return controlViewLayout;
 	}
 
 
@@ -163,22 +199,11 @@ public class MADStromActivity extends Activity {
 		            // Get the device MAC address
 		           String address = data.getExtras().getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
 		           Log.v(TAG, "Received Device Address "+ address);
-		           Toast.makeText(this, "Received Device Address "+address, Toast.LENGTH_LONG).show();
+		           Toast.makeText(this, "Received Device Address "+address, Toast.LENGTH_SHORT).show();
 				}
 				//flips to connect view
 				mFlipper.showNext();
-				// TODO: initiate NXT Lego Brick and start the robot
-				Button actionButton = new Button(this);
-				actionButton.setText(R.string.action_button);
-				actionButton.setOnClickListener(new Button.OnClickListener() {
-					
-					@Override
-					public void onClick(View v) {
-						// TODO: Real Implementation
-						Toast.makeText(getApplicationContext(), "Action", Toast.LENGTH_LONG).show();
-					}
-				});
-				mConnectView.addView(actionButton);
+				// TODO: initiate NXT Lego Brick and start the robot				
 			}
 			break;
 		}
@@ -189,6 +214,30 @@ public class MADStromActivity extends Activity {
 		
 		
 		
+	}
+
+	/**
+	 * Overriding the back-button so it doesn't kill the application
+	 * as there is only one activity and the back-button would kill
+	 * the activity with a call to finish()
+	 */
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		// TODO Auto-generated method stub
+		if (keyCode == KeyEvent.KEYCODE_BACK){
+			Log.v(TAG, "Back button has been pressed.. switching back to ConnectView");
+			Log.v(TAG, Integer.toString(mFlipper.getDisplayedChild()));
+			if (mFlipper.getDisplayedChild() == 1){
+				mFlipper.showPrevious();
+				Toast.makeText(this, "Press back again to quit", Toast.LENGTH_LONG);
+				return true;
+			}else{
+				//finish
+				mControlThread.pause();
+				finish();
+			}
+		}
+		return super.onKeyDown(keyCode, event);
 	}
 		
 	

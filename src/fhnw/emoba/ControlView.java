@@ -163,8 +163,7 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 		}
 		
 		/**
-         * Draws the ship, fuel/speed bars, and background to the provided
-         * Canvas.
+         * Draws the Home and Control Point
          */
 		private void doDraw(Canvas canvas){
 			//Draw the Control Point
@@ -199,7 +198,7 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 	}
 
 	/**
-     * Fetches the animation thread corresponding to this LunarView.
+     * Fetches the animation thread corresponding to this ControlView
      * 
      * @return the animation thread
      */
