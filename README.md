@@ -1,5 +1,5 @@
 # Android Application to control a lego mindstorm robot #
-Basic Android Application that allows to connect to a lego mindstorm robot and control its movement as well as a predefined action. The application has been created as part of a school assignment. (Original german assignment description below)
+Basic Android Application that allows to connect to a lego mindstorm robot and control its movement as well as a predefined action. The applicataion uses of mindstorm libraries lincesed under the Apache Lincese 2.0. It has been created as part of a school assignment. (Original german assignment description below)
 
 ## Übungsaufbau ##
 Mit den Übungen soll der Student in einer Gruppenarbeit selbständig eine Android Applikation schreiben, mit der man einen Lego Mindstorm Roboter (Abbildung 1) via Bluetooth ferngesteuert kontrollieren kann.
