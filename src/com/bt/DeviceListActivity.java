@@ -9,8 +9,8 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
-import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -59,12 +59,14 @@ public class DeviceListActivity extends Activity {
 
 		// If there are paired devices, add each one to the ArrayAdapter
 		if (pairedDevices.size() > 0) {
+			Log.v(TAG, String.format("Found %d pair devices",pairedDevices.size()));
 			findViewById(R.id.title_paired_devices).setVisibility(View.VISIBLE);
 			for (BluetoothDevice device : pairedDevices) {
 				mPairedDevicesArrayAdapter.add(device.getName() + "\n"
 						+ device.getAddress());
 			}
 		} else {
+			//otherwise display text for non paired devices
 			String noDevices = getResources().getText(R.string.none_paired)
 					.toString();
 			mPairedDevicesArrayAdapter.add(noDevices);
