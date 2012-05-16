@@ -152,7 +152,7 @@ public class MADStromActivity extends Activity {
 			} else if (resultCode == Activity.RESULT_OK) {
 				if (onEmulator) { setEmulationSetup();
 				} else {
-					//TODO Connect to Bluetooth Channel with  received device mac adress:
+					//TODO Connect to Bluetooth Channel with  received device MAC address:
 					// When DeviceListActivity returns with a device to connect
 		            // Get the device MAC address
 		           String address = data.getExtras().getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
@@ -185,7 +185,7 @@ public class MADStromActivity extends Activity {
 	}
 
 	private void setEmulationSetup() {
-		// TODO Auto-generated method stub
+		// TODO ASK Luthiger what this method actually should do
 		
 		
 		
