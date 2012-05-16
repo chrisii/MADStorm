@@ -47,6 +47,8 @@ public class MADStromActivity extends Activity {
 		setContentView(R.layout.connectview);
 		//creation of Views to accelerate Content-Switching
 		mConnectView = (LinearLayout)findViewById(R.id.connect_view_main);
+		//check if application is running on a avd
+		//bluetooth is not available on a avd
 		onEmulator = "sdk".equals(Build.PRODUCT);
 
 
