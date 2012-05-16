@@ -15,13 +15,16 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
+import android.widget.ViewFlipper;
 
 public class MADStromActivity extends Activity {
 	//Flag indicating if application is running in a emulator
 	//emulator implicates no Bluetooth
 	private boolean onEmulator;
-	/** Reference to the main layout in connectview */
+	/** Reference to the main layout in connect-view */
 	LinearLayout mConnectView;
+	/** Reference to the view flipper in the main layout 8 */
+	ViewFlipper mFlipper;
 	/** A handle to the thread that's actually running the animation. */
 	private ControlView mControlView;
 	/** A handle to the View in which the game is running. */
@@ -43,9 +46,6 @@ public class MADStromActivity extends Activity {
 		setContentView(R.layout.connectview);
 		//creation of Views to accelerate Content-Switching
 		mConnectView = (LinearLayout)findViewById(R.id.connect_view_main);
-		mControlView = new ControlView(getApplicationContext(), null);
-		mControlThread = mControlView.getThread();
-		
 		onEmulator = "sdk".equals(Build.PRODUCT);
 
 		((Button)findViewById(R.id.connect_button)).setOnClickListener(new Button.OnClickListener() {
@@ -98,8 +98,14 @@ public class MADStromActivity extends Activity {
 				Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
 				startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
 			}
-			
 		}
+		mFlipper = (ViewFlipper)findViewById(R.id.flipper);
+		mControlView = new ControlView(getApplicationContext(), null);
+		LinearLayout.LayoutParams ControlViewParams = new LinearLayout.LayoutParams(
+					ViewGroup.LayoutParams.FILL_PARENT,
+					ViewGroup.LayoutParams.FILL_PARENT, 1.0F);
+		mFlipper.addView(mControlView, ControlViewParams);
+		mControlThread = mControlView.getThread();
 	}
 
 
@@ -159,15 +165,9 @@ public class MADStromActivity extends Activity {
 		           Log.v(TAG, "Received Device Address "+ address);
 		           Toast.makeText(this, "Received Device Address "+address, Toast.LENGTH_LONG).show();
 				}
-				// TODO: bluetooth device has been connected switch to ControllView
-				mControlThread.doStart();
-				mConnectView.removeAllViews();
-				mConnectView.invalidate();
-				LinearLayout.LayoutParams mControlViewParams = new LinearLayout.LayoutParams(
-						ViewGroup.LayoutParams.FILL_PARENT,ViewGroup.LayoutParams.FILL_PARENT, 1.0F);
-				mControlView.setLayoutParams(mControlViewParams);
-				mConnectView.addView(mControlView);
-				
+				//flips to connect view
+				mFlipper.showNext();
+				// TODO: initiate NXT Lego Brick and start the robot
 				Button actionButton = new Button(this);
 				actionButton.setText(R.string.action_button);
 				actionButton.setOnClickListener(new Button.OnClickListener() {
