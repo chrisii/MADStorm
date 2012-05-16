@@ -45,7 +45,8 @@ public class MADStromActivity extends Activity {
 		mConnectView = (LinearLayout)findViewById(R.id.connect_view_main);
 		mControlView = new ControlView(getApplicationContext(), null);
 		mControlThread = mControlView.getThread();
-		
+		//check if application is running on a avd
+		//bluetooth is not available on a avd
 		onEmulator = "sdk".equals(Build.PRODUCT);
 
 		((Button)findViewById(R.id.connect_button)).setOnClickListener(new Button.OnClickListener() {
