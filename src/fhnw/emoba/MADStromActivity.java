@@ -71,25 +71,14 @@ public class MADStromActivity extends Activity {
 
 
 
-    /* (non-Javadoc)
-	 * @see android.app.Activity#onStart()
+	/**
+	 * Called just before the activity becomes visible to the user.
+	 * Followed by onResume() if the activity comes to the foreground, or onStop() if it becomes hidden.
 	 */
 	@Override
 	protected void onStart() {
 		// TODO Mechanism to turn on bluetooth
 		super.onStart();
-		
-		if (!onEmulator){
-			//Emulator does not support bluetoothSetup
-			mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-			if (mBluetoothAdapter == null){
-				//TODO: Device does not support bluetooth
-			}else{
-				//TODO: start activity to enable bluetooth
-				Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-				startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-			}
-		}
 		//Register connect button on Activity
 		((Button)findViewById(R.id.connect_button)).setOnClickListener(new Button.OnClickListener() {
 
@@ -112,6 +101,31 @@ public class MADStromActivity extends Activity {
 		mControlThread = mControlView.getThread();
 	}
 	
+	/**
+	 * Called just before the activity starts interacting with the user. 
+	 * At this point the activity is at the top of the activity stack, with user input going to it.
+	 */
+	@Override
+	protected void onResume() {
+		super.onResume();
+		if (!onEmulator){
+			//Emulator does not support bluetoothSetup
+			mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+			if (mBluetoothAdapter == null){
+				//TODO: Device does not support bluetooth
+			}else{
+				//only turn on bluetooth if its not already turned on
+				if (!mBluetoothAdapter.isEnabled()){
+					//TODO: start activity to enable bluetooth
+					Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+					startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);					
+				}
+			}
+		}
+	}
+
+
+
 	/**
 	 * Builds the ControlView by combining the SurfaceView and the action button in a LinearLayout
 	 * @return LinearLayout consisting of the surfaceView and the action button at the bottom
