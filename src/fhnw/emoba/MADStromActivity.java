@@ -286,27 +286,40 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 	public void handleLegoBrickMessage(Message message) {
 		switch (message.getData().getInt("message")) {
 		case BluetoothChannel.DISPLAY_TOAST:
-			Toast.makeText(this,message.getData().getString("toastText"), Toast.LENGTH_SHORT).show();
+			Toast.makeText(this.getApplicationContext(),message.getData().getString("toastText"), Toast.LENGTH_SHORT).show();
+			displayToast(message.getData().getString("toastText"));
 			break;
 		case BluetoothChannel.STATE_CONNECTERROR:
 			//TODO Display error message using Toast
-			Toast.makeText(this, "Problem opening connection to NXT Brick", Toast.LENGTH_SHORT).show();
+			Log.v(TAG, "Lost connection to robot");
+			displayToast("Problem opening connection to NXT brick");
 			mControlThread.pause();
 			break;
 		case BluetoothChannel.STATE_CONNECTED:
 			//TODO NXT connection successfully established
 			//TODO Instantiate and start robot 
 			mRobot = new NXTShotBot(nxt);
+			Log.v(TAG, "Sucessfully connected to robot");
 			mControlThread.doStart();
 			//Switch to ControlView
 			mFlipper.showNext();
+			break;
 		default:
 			break;
 		}
 		
 	}
 	
-	
+	private void displayToast(final String message){
+		this.runOnUiThread(new Runnable() {
+			
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				Toast.makeText(MADStromActivity.this, message, Toast.LENGTH_SHORT).show();
+			}
+		});
+	}
 		
 	
 }

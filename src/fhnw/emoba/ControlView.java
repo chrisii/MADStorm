@@ -228,7 +228,7 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
        }
        thread.setRunning(true);
        thread.start();
-       thread.setState(STATE_RUNNING);
+       thread.doStart();
 		
 	}
 
