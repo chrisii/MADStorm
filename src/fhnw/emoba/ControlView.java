@@ -168,28 +168,11 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 		}
 	}
 	
+	
 	/**
-	 * start the thread here so that we don't busy-wait in run()
-	 * waiting for the surface to be created
-	 * @param holder
-	 */
-	public void restart(){
-		//mThread is null if restart() is called for the first time
-		//otherwise mThread will already be initialized through
-		//surfaceCreated()
-		if (mThread!= null && !mThread.isRunning()) { 
-            mThread = new ControlThread(getHolder(), mContext, new Handler());
-            mThread.setSurfaceSize(mCanvasWidth, mCanvasHeight);
-            Log.v(MADStromActivity.TAG, "Creating new drawing Thread");
-            mThread.setRunning(true);
-            mThread.doStart();
-       }
-
-	}
-
-
-	/* (non-Javadoc)
-	 * @see android.view.View#onVisibilityChanged(android.view.View, int)
+	 * Incase application switches to the ControlView for a second time
+	 * e.g. second connection attempt: this method ensures that
+	 * drawing thread is recreated
 	 */
 	@Override
 	protected void onVisibilityChanged(View changedView, int visibility) {
@@ -197,6 +180,11 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 		Log.v(MADStromActivity.TAG, "onVisibilityChanged");
 		if (visibility == View.VISIBLE){
 			if (mThread != null && !mThread.isAlive()){
+	            mThread = new ControlThread(getHolder(), mContext, new Handler());
+	            mThread.setSurfaceSize(mCanvasWidth, mCanvasHeight);
+	            Log.v(MADStromActivity.TAG, "Creating new drawing Thread");
+	            mThread.setRunning(true);
+	            mThread.doStart();
 				Log.v(MADStromActivity.TAG, "Starting Drawing Thread");
 				mThread.start();
 			}
