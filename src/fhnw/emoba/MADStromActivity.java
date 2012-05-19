@@ -231,8 +231,9 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 		           nxt = new NXT();
 		           nxt.addSensorListener(this);
 		           nxt.connectAndStart(address);
-		           //flips to connect view
+		           //first call on restart() has no effect
 		           mControlView.restart();
+		           //flips to connect view
 		           mFlipper.showNext();
 				}
 			}

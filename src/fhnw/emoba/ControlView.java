@@ -174,6 +174,9 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 	 * @param holder
 	 */
 	public void restart(){
+		//mThread is null if restart() is called for the first time
+		//otherwise mThread will already be initialized through
+		//surfaceCreated()
 		if (mThread!= null && !mThread.isRunning()) { 
             mThread = new ControlThread(getHolder(), mContext, new Handler());
             mThread.setSurfaceSize(mCanvasWidth, mCanvasHeight);
