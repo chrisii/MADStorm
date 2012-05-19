@@ -311,7 +311,10 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 	
 	/**
 	 * Helper method to show Toast Messages as Toasts can only be displayed
-	 * by the UI-Thread
+	 * by the UI-Thread:
+	 * added code to properly display toasts as bluetooth channel is running
+	 * in a separate thread and would cause an exception because the message
+	 * come from a non-ui thread
 	 * @param message
 	 */
 	private void displayToast(final String message){
