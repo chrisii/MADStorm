@@ -1,6 +1,8 @@
 package fhnw.emoba;
 
+import com.bt.BluetoothChannel;
 import com.bt.DeviceListActivity;
+import com.bt.mindstorm.LegoBrickSensorListener;
 
 import fhnw.emoba.ControlView.ControlThread;
 import fhnw.emoba.R;
@@ -9,6 +11,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Message;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -18,7 +21,7 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
 
-public class MADStromActivity extends Activity {
+public class MADStromActivity extends Activity implements LegoBrickSensorListener{
 	//Flag indicating if application is running in a emulator
 	//emulator implicates no Bluetooth
 	private boolean onEmulator;
@@ -131,7 +134,7 @@ public class MADStromActivity extends Activity {
 	 * @return LinearLayout consisting of the surfaceView and the action button at the bottom
 	 */
 	private View buildControlViewLayout(){
-		//sets up the LinearLayout with the paramters
+		//sets up the LinearLayout with the parameters
 		LinearLayout controlViewLayout = new LinearLayout(this);
 		controlViewLayout.setOrientation(LinearLayout.VERTICAL);
 		//adding the SurfaceView to the controlViewLayout
@@ -162,19 +165,22 @@ public class MADStromActivity extends Activity {
 
 
 
-	/* (non-Javadoc)
-	 * @see android.app.Activity#onDestroy()
+	/**
+	 * Called when the activity is no longer visible to the user. This may
+	 * happen because it is being destroyed, or because another activity (either
+	 * an existing one or a new one) has been resumed and is covering
+	 * it.Followed either by onRestart() if the activity is coming back to
+	 * interact with the user, or by onDestroy() if this activity is going away.
 	 */
 	@Override
 	protected void onStop() {
 		super.onStop();
 		// TODO: Disable bluetooth
-		if (BluetoothAdapter.getDefaultAdapter().isEnabled()){
+		if (BluetoothAdapter.getDefaultAdapter().isEnabled()) {
 			Log.v(TAG, "Turning off bluetooth");
 			mBluetoothAdapter.disable();
 		}
 	}
-
 
 
 	/**
@@ -191,7 +197,8 @@ public class MADStromActivity extends Activity {
 
 
 	/**
-	 * Handles the result returned by the device list activity. */
+	 * Handles the result returned by the device list activity. 
+	 */
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		switch (requestCode) {
 		case REQUEST_ENABLE_BT:
@@ -254,6 +261,29 @@ public class MADStromActivity extends Activity {
 			}
 		}
 		return super.onKeyDown(keyCode, event);
+	}
+
+
+	/**
+	 * Callback method from the NXT Lego brick for handling specific events
+	 * from the NXT brick
+	 * @param message
+	 */
+	@Override
+	public void handleLegoBrickMessage(Message message) {
+		switch (message.getData().getInt("message")) {
+		case BluetoothChannel.DISPLAY_TOAST:
+			//TODO Display message using Toast
+			break;
+		case BluetoothChannel.STATE_CONNECTERROR:
+			//TODO Display error message using Toast
+		case BluetoothChannel.STATE_CONNECTED:
+			//TODO NXT connection successfully established
+			//TODO Instantiate and start robot 
+		default:
+			break;
+		}
+		
 	}
 		
 	
