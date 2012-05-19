@@ -7,7 +7,6 @@ import com.bt.mindstorm.nxt.NXT;
 import com.bt.mindstorm.robot.Robot;
 import com.bt.mindstorm.robot.model.NXTShotBot;
 
-import fhnw.emoba.ControlView.ControlThread;
 import fhnw.emoba.R;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -233,7 +232,8 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 		           nxt.addSensorListener(this);
 		           nxt.connectAndStart(address);
 		           //flips to connect view
-		           mFlipper.showNext();			
+		           mControlView.restart();
+		           mFlipper.showNext();
 				}
 			}
 			break;
@@ -264,6 +264,7 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 			}else{
 				//finish
 				//TODO Pause the Thread
+				mControlView.pause();
 				finish();
 			}
 		}
@@ -286,7 +287,7 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 		case BluetoothChannel.STATE_CONNECTERROR:
 			//TODO Display error message using Toast
 			Log.v(TAG, "Lost connection to robot");
-			displayToast("Problem opening connection to NXT brick");
+			displayToast("Connection error occurred");
 			//TODO Pause the Thread
 			mControlView.pause();
 			this.switchToConnectView();
@@ -296,8 +297,6 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 			//TODO Instantiate and start robot 
 			mRobot = new NXTShotBot(nxt);
 			Log.v(TAG, "Sucessfully connected to robot");
-			//TODO Start the Thread
-			mControlView.restart();
 			break;
 		default:
 			break;

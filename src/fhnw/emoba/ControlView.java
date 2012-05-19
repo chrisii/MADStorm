@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
 
 public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 	/**
@@ -21,19 +22,6 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 	 * so the UI stays responsive
 	 */
 	class ControlThread extends Thread{
-        /**
-         * Current height of the surface/canvas.
-         * 
-         * @see #setSurfaceSize
-         */
-        private int mCanvasHeight = 1;
-
-        /**
-         * Current width of the surface/canvas.
-         * 
-         * @see #setSurfaceSize
-         */
-        private int mCanvasWidth = 1;
         
         /** Indicates whether the surface size has been changed*/
         private boolean mSurfaceSizeChanged = false;
@@ -59,7 +47,6 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 
 		public void doStart(){
 			synchronized (mSurfaceHolder) {
-				
 				//adjust starting position
 				mControlPoint.setX(mCanvasWidth/2);
 				mControlPoint.setY(mCanvasHeight/2);
@@ -67,9 +54,9 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 				mHomePosition.setmX(mCanvasWidth/2);
 				mHomePosition.setmY(mCanvasHeight/2);
 				
-				setRunning(true);
 			}
-		}		
+		}
+		
 		@Override
 		public void run() {
 			while (mRunning){
@@ -109,7 +96,7 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 		 * 
 		 * @param b true to run, false to shut down
 		 */
-		public void setRunning(boolean b) {
+		public synchronized void setRunning(boolean b) {
 			mRunning = b;
 		}
 		
@@ -150,15 +137,19 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
     /** The thread that actually draws the animation */
     private ControlThread mThread;
     
+    /** Current height of the surface/canvas. */
+    private int mCanvasHeight = 1;
+
+    /** Current width of the surface/canvas. */
+    private int mCanvasWidth = 1;
+    
 	public ControlView(Context context, AttributeSet attrs) {
 		super(context, attrs);
 		
 		// register our interest in hearing about changes to our surface
         SurfaceHolder holder = getHolder();
         holder.addCallback(this);
-        mContext = context;
-        //create thread only; it's started in surfaceCreated
-        mThread = new ControlThread(holder, context, new Handler());
+        mContext = context;       
 	}
 	
 	@Override
@@ -171,8 +162,10 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 	 * Pauses the drawing thread
 	 */
 	public void pause(){
-		mThread.setRunning(false);
-		mThread.interrupt();
+		if (mThread!=null){
+			mThread.setRunning(false);
+			mThread.interrupt();
+		}
 	}
 	
 	/**
@@ -181,13 +174,30 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 	 * @param holder
 	 */
 	public void restart(){
-		if (!mThread.isRunning()) { 
+		if (mThread!= null && !mThread.isRunning()) { 
             mThread = new ControlThread(getHolder(), mContext, new Handler());
+            mThread.setSurfaceSize(mCanvasWidth, mCanvasHeight);
             Log.v(MADStromActivity.TAG, "Creating new drawing Thread");
+            mThread.setRunning(true);
+            mThread.doStart();
        }
-		mThread.setRunning(true);
-		mThread.doStart();
-		mThread.start();
+
+	}
+
+
+	/* (non-Javadoc)
+	 * @see android.view.View#onVisibilityChanged(android.view.View, int)
+	 */
+	@Override
+	protected void onVisibilityChanged(View changedView, int visibility) {
+		super.onVisibilityChanged(changedView, visibility);
+		Log.v(MADStromActivity.TAG, "onVisibilityChanged");
+		if (visibility == View.VISIBLE){
+			if (mThread != null && !mThread.isAlive()){
+				Log.v(MADStromActivity.TAG, "Starting Drawing Thread");
+				mThread.start();
+			}
+		}
 	}
 
 	/* (non-Javadoc)
@@ -196,8 +206,9 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int width,
 			int height) {
-		mThread.setSurfaceSize(width, height);
-		
+		mCanvasWidth = width;
+		mCanvasHeight = height;
+		mThread.setSurfaceSize(width, height);		
 	}
 
 	/* (non-Javadoc)
@@ -207,7 +218,16 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 	public void surfaceCreated(SurfaceHolder holder) {
         // start the thread here so that we don't busy-wait in run()
         // waiting for the surface to be created
-		restart();
+		//create thread only; it's started in surfaceCreated
+        mThread = new ControlThread(holder, mContext, new Handler());
+		Log.v(MADStromActivity.TAG, "SurfaceView Created");
+		Log.v(MADStromActivity.TAG, mThread.isRunning() ? "Thread is running" : "Thread is not running");
+		if (!mThread.isAlive()){
+			Log.v(MADStromActivity.TAG, "Starting drawing Thread");
+			mThread.setRunning(true);
+			mThread.doStart();
+			mThread.start();	
+		}
 		
 	}
 
@@ -297,8 +317,8 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 		 */
 		private void draw(Canvas canvas) {
 			if (ControlView.this.mThread.mSurfaceSizeChanged) {
-				setX(ControlView.this.mThread.mCanvasWidth / 2);
-				setY(ControlView.this.mThread.mCanvasHeight / 2);
+				setX(ControlView.this.mCanvasWidth / 2);
+				setY(ControlView.this.mCanvasHeight / 2);
 			}
 			canvas.drawCircle(position.x, position.y, RADIUS, style);
 		}
@@ -355,8 +375,8 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 		 */
 		private void draw(Canvas canvas){
 			if (ControlView.this.mThread.mSurfaceSizeChanged){
-				setmX(ControlView.this.mThread.mCanvasWidth/2);
-				setmY(ControlView.this.mThread.mCanvasHeight/2);
+				setmX(ControlView.this.mCanvasWidth/2);
+				setmY(ControlView.this.mCanvasHeight/2);
 			}
 			canvas.drawCircle(mX, mY, RADIUS, style);
 			
