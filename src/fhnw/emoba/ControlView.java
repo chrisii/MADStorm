@@ -19,8 +19,8 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
     /*
      * State-tracking constants
      */
-    public static final int STATE_PAUSE = 0;
-    public static final int STATE_RUNNING = 1;
+    //public static final int STATE_PAUSE = 0;
+   //public static final int STATE_RUNNING = 1;
 	
 	class ControlThread extends Thread{
         /**
@@ -72,26 +72,28 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 				mHomePosition.setmX(mCanvasWidth/2);
 				mHomePosition.setmY(mCanvasHeight/2);
 				
-				setState(STATE_RUNNING);
+				setRunning(true);
 			}
 		}
 		
 		public void pause(){
-			synchronized (mSurfaceHolder) {
-				if (mMode == STATE_RUNNING) setState(STATE_PAUSE);
-			}
+			setRunning(false);
+//			synchronized (mSurfaceHolder) {
+//				if (mMode == STATE_RUNNING) setState(STATE_PAUSE);
+//			}
 		}
 		
 		public void unpause(){
-			synchronized (mSurfaceHolder) {
-				setState(STATE_RUNNING);
-			}
+			setRunning(true);
+//			synchronized (mSurfaceHolder) {
+//				setState(STATE_RUNNING);
+//			}
 		}
 		
 		public synchronized void restoreState(Bundle savedState){
-			synchronized (mSurfaceHolder) {
-				setState(STATE_PAUSE);
-			}
+//			synchronized (mSurfaceHolder) {
+//				setState(STATE_PAUSE);
+//			}
 		}
 		
 		
@@ -102,10 +104,8 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 				try {
 					c = mSurfaceHolder.lockCanvas(null);
 					synchronized(mSurfaceHolder){
-						if (mMode == STATE_RUNNING){
-							doDraw(c);
-						}
-						mSurfaceSizeChanged = false;						
+						doDraw(c);
+						mSurfaceSizeChanged = false;					
 					}
 				}finally{
 					// do this in a finally so that if an exception is thrown

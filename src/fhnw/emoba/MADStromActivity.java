@@ -239,7 +239,7 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 		           nxt.addSensorListener(this);
 		           nxt.connectAndStart(address);
 		           //flips to connect view
-		           //mFlipper.showNext();			
+		           mFlipper.showNext();			
 				}
 			}
 			break;
@@ -294,6 +294,7 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 			Log.v(TAG, "Lost connection to robot");
 			displayToast("Problem opening connection to NXT brick");
 			mControlThread.pause();
+			this.switchToConnectView();
 			break;
 		case BluetoothChannel.STATE_CONNECTED:
 			//TODO NXT connection successfully established
@@ -301,8 +302,6 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 			mRobot = new NXTShotBot(nxt);
 			Log.v(TAG, "Sucessfully connected to robot");
 			mControlThread.doStart();
-			//Switch to ControlView
-			mFlipper.showNext();
 			break;
 		default:
 			break;
@@ -310,16 +309,37 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 		
 	}
 	
+	/**
+	 * Helper method to show Toast Messages as Toasts can only be displayed
+	 * by the UI-Thread
+	 * @param message
+	 */
 	private void displayToast(final String message){
 		this.runOnUiThread(new Runnable() {
 			
 			@Override
 			public void run() {
-				// TODO Auto-generated method stub
 				Toast.makeText(MADStromActivity.this, message, Toast.LENGTH_SHORT).show();
 			}
 		});
 	}
-		
+	
+	/**
+	 * Helper method to switch to the connect view on connection error
+	 * as the bluetooth channel is not run on the ui thread: accessing the
+	 * viewflipper will crash  the application with a runtime error:
+	 * E/AndroidRuntime(1326): android.view.ViewRootImpl$CalledFromWrongThreadException: 
+	 * Only the original thread that created a view hierarchy can touch its views.
+	 */
+	private void switchToConnectView(){
+		this.runOnUiThread(new Runnable() {
+			
+			@Override
+			public void run() {
+				mFlipper.showPrevious();
+				
+			}
+		});
+	}
 	
 }
