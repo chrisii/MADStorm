@@ -312,7 +312,10 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 		public void setY(float y){
 			this.position.y = y;
 		}
-		
+		/**
+		 * draws the control point
+		 * @param canvas where the control point should be drawn
+		 */
 		private void draw(Canvas canvas) {
 			if (ControlView.this.getThread().mSurfaceSizeChanged) {
 				setX(ControlView.this.getThread().mCanvasWidth / 2);
@@ -367,7 +370,10 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 		public void setmY(float mY) {
 			this.mY = mY;
 		}
-		
+		/**
+		 * draws the home point
+		 * @param canvas where the home point should be drawn
+		 */
 		private void draw(Canvas canvas){
 			if (ControlView.this.getThread().mSurfaceSizeChanged){
 				setmX(ControlView.this.getThread().mCanvasWidth/2);

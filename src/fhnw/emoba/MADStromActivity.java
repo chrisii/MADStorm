@@ -4,6 +4,8 @@ import com.bt.BluetoothChannel;
 import com.bt.DeviceListActivity;
 import com.bt.mindstorm.LegoBrickSensorListener;
 import com.bt.mindstorm.nxt.NXT;
+import com.bt.mindstorm.robot.Robot;
+import com.bt.mindstorm.robot.model.NXTShotBot;
 
 import fhnw.emoba.ControlView.ControlThread;
 import fhnw.emoba.R;
@@ -27,9 +29,11 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 	//emulator implicates no Bluetooth
 	private boolean onEmulator;
 	/** Reference to the main layout in connect-view */
-	LinearLayout mConnectView;
-	/** Reference to the view flipper in the main layout 8 */
-	ViewFlipper mFlipper;
+	private LinearLayout mConnectView;
+	/** Reference to the view flipper in the main layout */
+	private ViewFlipper mFlipper;
+	/** Reference to the connect_button in the main layout */
+	private Button mConnectButton;
 	/** A handle to the thread that's actually running the animation. */
 	private ControlView mControlView;
 	/** A handle to the View in which the game is running. */
@@ -42,6 +46,8 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 	private static final int REQUEST_ENABLE_BT = 2;
 	/** Reference to the NXT Brick */
 	private NXT nxt;
+	/** Reference to the actual mad-storm robot */
+	private Robot mRobot;
 	/** TAG for logging*/
 	private static final String TAG = MADStromActivity.class.getSimpleName();
 	
@@ -51,6 +57,7 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 		super.onCreate(savedInstanceState);
 		//set initial View to the connection view
 		setContentView(R.layout.connectview);
+		mConnectButton = ((Button)findViewById(R.id.connect_button));
 		//creation of Views to accelerate Content-Switching
 		mConnectView = (LinearLayout)findViewById(R.id.connect_view_main);
 		//check if application is running on a avd
@@ -86,7 +93,7 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 		// TODO Mechanism to turn on bluetooth
 		super.onStart();
 		//Register connect button on Activity
-		((Button)findViewById(R.id.connect_button)).setOnClickListener(new Button.OnClickListener() {
+		mConnectButton.setOnClickListener(new Button.OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
@@ -118,11 +125,13 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 			//Emulator does not support bluetoothSetup
 			mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 			if (mBluetoothAdapter == null){
-				//TODO: Device does not support bluetooth
+				//Device does not support bluetooth, disable connect button
+				mConnectButton.setClickable(false);
+				Toast.makeText(this, "This device does not support bluetooth", Toast.LENGTH_LONG).show();
 			}else{
 				//only turn on bluetooth if its not already turned on
 				if (!mBluetoothAdapter.isEnabled()){
-					//TODO: start activity to enable bluetooth
+					//start activity to enable bluetooth
 					Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
 					startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);					
 				}
@@ -178,8 +187,8 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 	@Override
 	protected void onStop() {
 		super.onStop();
-		// TODO: Disable bluetooth
-		if (BluetoothAdapter.getDefaultAdapter().isEnabled()) {
+		// Disable bluetooth
+		if (mBluetoothAdapter != null && mBluetoothAdapter.isEnabled()) {
 			Log.v(TAG, "Turning off bluetooth");
 			mBluetoothAdapter.disable();
 		}
@@ -205,7 +214,6 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		switch (requestCode) {
 		case REQUEST_ENABLE_BT:
-			//TODO: Show Dialog to enable bluetooth
 			if (resultCode == Activity.RESULT_OK){
 				Log.v(TAG, "Bluetooth has been enabled");
 			}else {
@@ -220,20 +228,19 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 			} else if (resultCode == Activity.RESULT_OK) {
 				if (onEmulator) { setEmulationSetup();
 				} else {
-					//TODO Connect to Bluetooth Channel with  received device MAC address:
 					// When DeviceListActivity returns with a device to connect
 		            // Get the device MAC address
 		           String address = data.getExtras().getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
 		           Log.v(TAG, "Received Device Address "+ address);
 		           Toast.makeText(this, "Received Device Address "+address, Toast.LENGTH_SHORT).show();
-		           //Instantiate NXT brick and register activity as legobrick listener
+		           //TODO Connect to Bluetooth Channel with received device MAC address:
+		           //Instantiate NXT brick and register activity as lego brick listener
 		           nxt = new NXT();
 		           nxt.addSensorListener(this);
 		           nxt.connectAndStart(address);
+		           //flips to connect view
+		           //mFlipper.showNext();			
 				}
-				//flips to connect view
-				mFlipper.showNext();
-				// TODO: initiate NXT Lego Brick and start the robot				
 			}
 			break;
 		}
@@ -253,7 +260,6 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 	 */
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		// TODO Auto-generated method stub
 		if (keyCode == KeyEvent.KEYCODE_BACK){
 			Log.v(TAG, "Back button has been pressed.. switching back to ConnectView");
 			Log.v(TAG, Integer.toString(mFlipper.getDisplayedChild()));
@@ -280,18 +286,27 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 	public void handleLegoBrickMessage(Message message) {
 		switch (message.getData().getInt("message")) {
 		case BluetoothChannel.DISPLAY_TOAST:
-			Toast.makeText(this,message.getData().getString("toastText"), Toast.LENGTH_SHORT);
+			Toast.makeText(this,message.getData().getString("toastText"), Toast.LENGTH_SHORT).show();
 			break;
 		case BluetoothChannel.STATE_CONNECTERROR:
 			//TODO Display error message using Toast
+			Toast.makeText(this, "Problem opening connection to NXT Brick", Toast.LENGTH_SHORT).show();
+			mControlThread.pause();
+			break;
 		case BluetoothChannel.STATE_CONNECTED:
 			//TODO NXT connection successfully established
 			//TODO Instantiate and start robot 
+			mRobot = new NXTShotBot(nxt);
+			mControlThread.doStart();
+			//Switch to ControlView
+			mFlipper.showNext();
 		default:
 			break;
 		}
 		
 	}
+	
+	
 		
 	
 }
