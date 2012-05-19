@@ -36,8 +36,6 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 	private Button mConnectButton;
 	/** A handle to the thread that's actually running the animation. */
 	private ControlView mControlView;
-	/** A handle to the View in which the game is running. */
-	private ControlThread mControlThread;
 	/** Bluetooth adapter to check if device supports bluetooth*/
 	private BluetoothAdapter mBluetoothAdapter;
     /** Intent request codes */
@@ -49,7 +47,7 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 	/** Reference to the actual mad-storm robot */
 	private Robot mRobot;
 	/** TAG for logging*/
-	private static final String TAG = MADStromActivity.class.getSimpleName();
+	public static final String TAG = MADStromActivity.class.getSimpleName();
 	
 	/** Called when the activity is first created. */
 	@Override
@@ -75,10 +73,7 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 	@Override
 	protected void onPause() {
 		super.onPause();
-		if (mControlView.getThread().isAlive()){
-			mControlView.getThread().pause();
-			mControlView.getThread().interrupt();
-		}
+		mControlView.pause();
 	}
 	
 
@@ -111,7 +106,6 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 		//add ControlView to Viewflipper
 		mFlipper = (ViewFlipper)findViewById(R.id.flipper);
 		mFlipper.addView(buildControlViewLayout());
-		mControlThread = mControlView.getThread();
 	}
 	
 	/**
@@ -269,7 +263,7 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 				return true;
 			}else{
 				//finish
-				mControlThread.pause();
+				//TODO Pause the Thread
 				finish();
 			}
 		}
@@ -293,7 +287,8 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 			//TODO Display error message using Toast
 			Log.v(TAG, "Lost connection to robot");
 			displayToast("Problem opening connection to NXT brick");
-			mControlThread.pause();
+			//TODO Pause the Thread
+			mControlView.pause();
 			this.switchToConnectView();
 			break;
 		case BluetoothChannel.STATE_CONNECTED:
@@ -301,7 +296,8 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 			//TODO Instantiate and start robot 
 			mRobot = new NXTShotBot(nxt);
 			Log.v(TAG, "Sucessfully connected to robot");
-			mControlThread.doStart();
+			//TODO Start the Thread
+			mControlView.restart();
 			break;
 		default:
 			break;
@@ -339,7 +335,9 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 			
 			@Override
 			public void run() {
-				mFlipper.showPrevious();
+				if (mFlipper.getCurrentView() != mConnectView){
+					mFlipper.showPrevious();					
+				}
 				
 			}
 		});
