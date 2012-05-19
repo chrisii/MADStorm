@@ -3,6 +3,7 @@ package fhnw.emoba;
 import com.bt.BluetoothChannel;
 import com.bt.DeviceListActivity;
 import com.bt.mindstorm.LegoBrickSensorListener;
+import com.bt.mindstorm.nxt.NXT;
 
 import fhnw.emoba.ControlView.ControlThread;
 import fhnw.emoba.R;
@@ -39,6 +40,8 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
     private static final int REQUEST_CONNECT_DEVICE = 1;
     /** Intent request codes for enabling bluetooth */
 	private static final int REQUEST_ENABLE_BT = 2;
+	/** Reference to the NXT Brick */
+	private NXT nxt;
 	/** TAG for logging*/
 	private static final String TAG = MADStromActivity.class.getSimpleName();
 	
@@ -223,6 +226,10 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 		           String address = data.getExtras().getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
 		           Log.v(TAG, "Received Device Address "+ address);
 		           Toast.makeText(this, "Received Device Address "+address, Toast.LENGTH_SHORT).show();
+		           //Instantiate NXT brick and register activity as legobrick listener
+		           nxt = new NXT();
+		           nxt.addSensorListener(this);
+		           nxt.connectAndStart(address);
 				}
 				//flips to connect view
 				mFlipper.showNext();
@@ -273,7 +280,7 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 	public void handleLegoBrickMessage(Message message) {
 		switch (message.getData().getInt("message")) {
 		case BluetoothChannel.DISPLAY_TOAST:
-			//TODO Display message using Toast
+			Toast.makeText(this,message.getData().getString("toastText"), Toast.LENGTH_SHORT);
 			break;
 		case BluetoothChannel.STATE_CONNECTERROR:
 			//TODO Display error message using Toast
