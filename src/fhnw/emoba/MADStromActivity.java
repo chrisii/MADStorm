@@ -72,7 +72,7 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 	@Override
 	protected void onPause() {
 		super.onPause();
-		mControlView.pause();
+		//no call to pause() is necessary anymore
 	}
 	
 
@@ -262,8 +262,7 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 				return true;
 			}else{
 				//finish
-				//TODO Pause the Thread
-				mControlView.pause();
+				//no call to pause() is necessary anymore
 				finish();
 			}
 		}
@@ -284,11 +283,9 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 			displayToast(message.getData().getString("toastText"));
 			break;
 		case BluetoothChannel.STATE_CONNECTERROR:
-			//TODO Display error message using Toast
 			Log.v(TAG, "Lost connection to robot");
 			displayToast("Connection error occurred");
-			//TODO Pause the Thread
-			mControlView.pause();
+			//no call to pause() is necessary anymore
 			this.switchToConnectView();
 			break;
 		case BluetoothChannel.STATE_CONNECTED:

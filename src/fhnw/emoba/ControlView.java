@@ -188,6 +188,11 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 				Log.v(MADStromActivity.TAG, "Starting Drawing Thread");
 				mThread.start();
 			}
+		}else{
+			if (mThread!=null){
+				mThread.setRunning(false);
+				mThread.interrupt();
+			}
 		}
 	}
 
