@@ -158,21 +158,11 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 		
 	}
 	
-	/**
-	 * Pauses the drawing thread
-	 */
-	public void pause(){
-		if (mThread!=null){
-			mThread.setRunning(false);
-			mThread.interrupt();
-		}
-	}
-	
 	
 	/**
 	 * Incase application switches to the ControlView for a second time
 	 * e.g. second connection attempt: this method ensures that
-	 * drawing thread is recreated
+	 * drawing thread is recreated, call to pause() is not necessary
 	 */
 	@Override
 	protected void onVisibilityChanged(View changedView, int visibility) {
