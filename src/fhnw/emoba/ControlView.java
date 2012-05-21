@@ -6,6 +6,10 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PointF;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.AttributeSet;
@@ -15,7 +19,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 
-public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
+public class ControlView extends SurfaceView implements SurfaceHolder.Callback, SensorEventListener{
 	/**
 	 * Thread-Class that does the actual drawing
 	 * Drawing of the Surface-View should be handled in a non-UI thread
@@ -33,10 +37,11 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 		private SurfaceHolder mSurfaceHolder;
 		
 		/** Handle to the control - point */
-		private ControlPoint mControlPoint;
+		private volatile ControlPoint mControlPoint;
 		
 		/** Handle to the home-position */
 		private HomePosition mHomePosition;
+		
 		
 		public ControlThread(SurfaceHolder surfaceHolder, Context context,
                 Handler handler){
@@ -143,8 +148,16 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
     /** Current width of the surface/canvas. */
     private int mCanvasWidth = 1;
     
+    /** Manager provides access to sensor */
+    private final SensorManager mSensorManager;
+    
+    /** Sensor represents the actual sensor we get our data from */
+    private final Sensor mAccelerator;
+    
 	public ControlView(Context context, AttributeSet attrs) {
 		super(context, attrs);
+		mSensorManager = (SensorManager)context.getSystemService(Context.SENSOR_SERVICE);
+		mAccelerator = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		
 		// register our interest in hearing about changes to our surface
         SurfaceHolder holder = getHolder();
@@ -169,6 +182,8 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 		super.onVisibilityChanged(changedView, visibility);
 		Log.v(MADStromActivity.TAG, "onVisibilityChanged");
 		if (visibility == View.VISIBLE){
+			//register Listener to receive events from sensor when ControlView is visible
+			mSensorManager.registerListener(this, mAccelerator, SensorManager.SENSOR_DELAY_NORMAL);
 			if (mThread != null && !mThread.isAlive()){
 	            mThread = new ControlThread(getHolder(), mContext, new Handler());
 	            mThread.setSurfaceSize(mCanvasWidth, mCanvasHeight);
@@ -183,6 +198,8 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 				mThread.setRunning(false);
 				mThread.interrupt();
 			}
+			//unregister Listener to receive events from sensor when ControlView is visible
+			mSensorManager.unregisterListener(this);
 		}
 	}
 
@@ -222,6 +239,8 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
 	 */
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
+		//unregister Listener to receive events from sensor when ControlView is visible
+		mSensorManager.unregisterListener(this);
 	    // we have to tell thread to shut down & wait for it to finish, or else
         // it might touch the Surface after we return and explode
         boolean retry = true;
@@ -236,8 +255,27 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback{
         Log.d("ControlThread", Boolean.toString(mThread.isAlive()));
 	}
 	
+	@Override
+	public void onAccuracyChanged(Sensor sensor, int accuracy) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onSensorChanged(SensorEvent event) {
+		float azimut = event.values[0];
+		float pitch  = event.values[1];
+		float roll = event.values[2];
+		//calculate new coordinates of controlpoint
+		if (mThread!=null){
+			mThread.mControlPoint.setX(mCanvasWidth/2 - (mCanvasWidth/20)*azimut);
+			mThread.mControlPoint.setY(mCanvasHeight/2 + (mCanvasHeight/20)*pitch);			
+		}
+		
+	}
+
 	class ControlPoint {
-		private PointF position;
+		private volatile PointF position;
 		private Paint style;
 		private final static float RADIUS = 5;
 		private final static int COLOR = Color.YELLOW;

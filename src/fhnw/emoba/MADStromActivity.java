@@ -286,7 +286,7 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 			Log.v(TAG, "Lost connection to robot");
 			displayToast("Connection error occurred");
 			//no call to pause() is necessary anymore
-			this.switchToConnectView();
+			//this.switchToConnectView();
 			break;
 		case BluetoothChannel.STATE_CONNECTED:
 			//TODO NXT connection successfully established
