@@ -271,6 +271,7 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback, 
 			mThread.mControlPoint.setX(mCanvasWidth/2 - (mCanvasWidth/20)*azimut);
 			mThread.mControlPoint.setY(mCanvasHeight/2 + (mCanvasHeight/20)*pitch);
 			//Calculate new Velocity
+			//TODO Proper Implementation and Testing
 			Log.v(MADStromActivity.TAG, "CAW: " + Integer.toString(mCanvasWidth)+" "+"X: "+Float.toString(mThread.mControlPoint.getX()));
 			Log.v(MADStromActivity.TAG, "CAH: " + Integer.toString(mCanvasHeight)+" "+"Y: "+Float.toString(mThread.mControlPoint.getY()));
 			double velX = mThread.mControlPoint.getX()/mCanvasWidth;

@@ -16,11 +16,13 @@ import android.os.Bundle;
 import android.os.Message;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 import android.widget.ViewFlipper;
 
 public class MADStromActivity extends Activity implements LegoBrickSensorListener{
@@ -35,6 +37,8 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 	private Button mConnectButton;
 	/** A handle to the thread that's actually running the animation. */
 	private ControlView mControlView;
+	/** A handle to the action button in the controlView */
+	private ToggleButton mActionButton;
 	/** Bluetooth adapter to check if device supports bluetooth*/
 	private BluetoothAdapter mBluetoothAdapter;
     /** Intent request codes */
@@ -45,6 +49,8 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 	private NXT nxt;
 	/** Reference to the actual mad-storm robot */
 	private Robot mRobot;
+	/** Boolean indicating if robot is executing action*/
+	private boolean mRobotInAction = false;
 	/** TAG for logging*/
 	public static final String TAG = MADStromActivity.class.getSimpleName();
 	
@@ -150,25 +156,50 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 		controlViewLayout.setLayoutParams(ControlViewParams);
 		//Building the ControlView, adding the action button to the ControlViewLayout
 		controlViewLayout.addView(mControlView,ControlViewParams);
-		Button actionButton = new Button(this);
-		actionButton.setText(R.string.action_button);
-		actionButton.setOnClickListener(new Button.OnClickListener() {
+		mActionButton = new ToggleButton(this);
+		//actionButton.setText(R.string.action_button);
+		mActionButton.setTextOff("Activate arm");
+		mActionButton.setTextOn("Deactivate arm");
+		/*actionButton.setOnTouchListener(new Button.OnTouchListener() {
+			
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+				if (event.getAction() == MotionEvent.ACTION_DOWN){
+					Toast.makeText(MADStromActivity.this, "Action ON", Toast.LENGTH_SHORT).show();
+					if (mRobot!=null){
+						mRobot.action(true);
+					}
+				}else if (event.getAction() == MotionEvent.ACTION_POINTER_1_UP){
+					Toast.makeText(MADStromActivity.this, "Action OFF", Toast.LENGTH_SHORT).show();
+					if (mRobot!=null){
+						mRobot.action(false);
+					}
+				}
+				return true;
+			}
+		}); */
+		mActionButton.setOnClickListener(new Button.OnClickListener() {
 			
 			@Override
 			public void onClick(View v) {
-				// TODO: Real Implementation
 				Toast.makeText(MADStromActivity.this, "Action", Toast.LENGTH_SHORT).show();
-				//emits action on Robot;
+				//emits action on Robot, works as a toggle
+				//pressing it once: activates it, pressing it again deactivates it;
 				if (mRobot!=null){
-					mRobot.action(true);
+					mRobotInAction=!mRobotInAction;
+					mRobot.action(mRobotInAction);
 				}
 			}
 		});
+		//set Initial State
+		mActionButton.setChecked(false);
+		//disable button until connection has been established
+		mActionButton.setClickable(false);
 		LinearLayout.LayoutParams actionButtonParams = new LinearLayout.LayoutParams(
 				ViewGroup.LayoutParams.FILL_PARENT,
 				ViewGroup.LayoutParams.WRAP_CONTENT);
 
-		controlViewLayout.addView(actionButton, actionButtonParams);
+		controlViewLayout.addView(mActionButton, actionButtonParams);
 		return controlViewLayout;
 	}
 
@@ -190,8 +221,8 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 			mBluetoothAdapter.disable();
 		}
 		//stops the robot incase the application gets killed
-		if (mRobot!=null && !mRobot.isEmergencyStop()){
-			mRobot.emergencyStop(true);
+		if (mRobot!=null){
+			mRobot.stop();
 		}
 	}
 
@@ -261,18 +292,15 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 	 */
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		if (keyCode == KeyEvent.KEYCODE_BACK){
+		if (keyCode == KeyEvent.KEYCODE_BACK) {
 			Log.v(TAG, "Back button has been pressed.. switching back to ConnectView");
 			Log.v(TAG, Integer.toString(mFlipper.getDisplayedChild()));
-			if (mFlipper.getDisplayedChild() == 1){
-				mFlipper.showPrevious();
-				Toast.makeText(this, "Press back again to quit", Toast.LENGTH_LONG);
-				return true;
-			}else{
-				//finish
-				//no call to pause() is necessary anymore
-				finish();
-			}
+			this.switchToConnectView();
+			return true;
+		} else {
+			// finish
+			// no call to pause() is necessary anymore
+			finish();
 		}
 		return super.onKeyDown(keyCode, event);
 	}
@@ -301,7 +329,10 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 			//TODO NXT connection successfully established
 			//TODO Instantiate and start robot 
 			mRobot = new NXTShotBot(nxt);
+			mRobot.start();
 			Log.v(TAG, "Sucessfully connected to robot");
+			//enable the action button in the controlView
+			mActionButton.setClickable(true);
 			break;
 		default:
 			break;
@@ -340,7 +371,12 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 			@Override
 			public void run() {
 				if (mFlipper.getCurrentView() != mConnectView){
-					mFlipper.showPrevious();					
+					mFlipper.showPrevious();	
+					Toast.makeText(getApplicationContext(), "Press back again to quit", Toast.LENGTH_LONG);
+				}
+				if (mRobot!=null){
+					mRobot.stop();
+					mRobot.action(false);
 				}
 				
 			}
