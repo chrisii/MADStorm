@@ -137,7 +137,7 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback, 
 	}
 	
     /** Handle to the application context, used to e.g. fetch drawables. */
-    private Context mContext;
+    private MADStromActivity mContext;
     
     /** The thread that actually draws the animation */
     private ControlThread mThread;
@@ -162,7 +162,7 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback, 
 		// register our interest in hearing about changes to our surface
         SurfaceHolder holder = getHolder();
         holder.addCallback(this);
-        mContext = context;       
+        mContext = (MADStromActivity) context;       
 	}
 	
 	@Override
@@ -257,7 +257,7 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback, 
 	
 	@Override
 	public void onAccuracyChanged(Sensor sensor, int accuracy) {
-		// TODO Auto-generated method stub
+		// TODO Maybe necessary to increase the resolution
 		
 	}
 
@@ -269,7 +269,13 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback, 
 		//calculate new coordinates of controlpoint
 		if (mThread!=null){
 			mThread.mControlPoint.setX(mCanvasWidth/2 - (mCanvasWidth/20)*azimut);
-			mThread.mControlPoint.setY(mCanvasHeight/2 + (mCanvasHeight/20)*pitch);			
+			mThread.mControlPoint.setY(mCanvasHeight/2 + (mCanvasHeight/20)*pitch);
+			//Calculate new Velocity
+			Log.v(MADStromActivity.TAG, "CAW: " + Integer.toString(mCanvasWidth)+" "+"X: "+Float.toString(mThread.mControlPoint.getX()));
+			Log.v(MADStromActivity.TAG, "CAH: " + Integer.toString(mCanvasHeight)+" "+"Y: "+Float.toString(mThread.mControlPoint.getY()));
+			double velX = mThread.mControlPoint.getX()/mCanvasWidth;
+			double velY = mThread.mControlPoint.getY()/mCanvasHeight;
+			mContext.setVelocity(velX,velY);
 		}
 		
 	}

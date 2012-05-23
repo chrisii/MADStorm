@@ -143,7 +143,7 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 		LinearLayout controlViewLayout = new LinearLayout(this);
 		controlViewLayout.setOrientation(LinearLayout.VERTICAL);
 		//adding the SurfaceView to the controlViewLayout
-		mControlView = new ControlView(getApplicationContext(), null);
+		mControlView = new ControlView(this, null);
 		LinearLayout.LayoutParams ControlViewParams = new LinearLayout.LayoutParams(
 					ViewGroup.LayoutParams.FILL_PARENT,
 					ViewGroup.LayoutParams.FILL_PARENT, 1.0F);
@@ -158,6 +158,10 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 			public void onClick(View v) {
 				// TODO: Real Implementation
 				Toast.makeText(MADStromActivity.this, "Action", Toast.LENGTH_SHORT).show();
+				//emits action on Robot;
+				if (mRobot!=null){
+					mRobot.action(true);
+				}
 			}
 		});
 		LinearLayout.LayoutParams actionButtonParams = new LinearLayout.LayoutParams(
@@ -184,6 +188,10 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 		if (mBluetoothAdapter != null && mBluetoothAdapter.isEnabled()) {
 			Log.v(TAG, "Turning off bluetooth");
 			mBluetoothAdapter.disable();
+		}
+		//stops the robot incase the application gets killed
+		if (mRobot!=null && !mRobot.isEmergencyStop()){
+			mRobot.emergencyStop(true);
 		}
 	}
 
@@ -285,6 +293,7 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 		case BluetoothChannel.STATE_CONNECTERROR:
 			Log.v(TAG, "Lost connection to robot");
 			displayToast("Connection error occurred");
+			mRobot = null;
 			//no call to pause() is necessary anymore
 			//this.switchToConnectView();
 			break;
@@ -336,6 +345,24 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 				
 			}
 		});
+	}
+	
+	public void setVelocity(double velX, double velY){
+		if (mRobot!=null){
+			mRobot.setVelocity(velX, velY);
+		}
+	}
+	
+	public void turn(int degree){
+		if (mRobot!=null){
+			mRobot.turn(degree);
+		}
+	}
+	
+	public void setEmergencyStop(){
+		if (mRobot!=null){
+			mRobot.emergencyStop(true);
+		}
 	}
 	
 }
