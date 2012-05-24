@@ -69,7 +69,8 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback, 
 				try {
 					c = mSurfaceHolder.lockCanvas(null);
 					synchronized(mSurfaceHolder){
-						doDraw(c);
+					//prevents null-pointer exception in rare cases
+					if (c!=null) doDraw(c);
 						mSurfaceSizeChanged = false;					
 					}
 				}finally{
@@ -263,20 +264,16 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback, 
 
 	@Override
 	public void onSensorChanged(SensorEvent event) {
-		float azimut = event.values[0];
-		float pitch  = event.values[1];
-		float roll = event.values[2];
+		float x = event.values[0];
+		float y  = event.values[1];
+		float z = event.values[2];
 		//calculate new coordinates of controlpoint
 		if (mThread!=null){
-			mThread.mControlPoint.setX(mCanvasWidth/2 - (mCanvasWidth/20)*azimut);
-			mThread.mControlPoint.setY(mCanvasHeight/2 + (mCanvasHeight/20)*pitch);
-			//Calculate new Velocity
-			//TODO Proper Implementation and Testing
-			Log.v(MADStromActivity.TAG, "CAW: " + Integer.toString(mCanvasWidth)+" "+"X: "+Float.toString(mThread.mControlPoint.getX()));
-			Log.v(MADStromActivity.TAG, "CAH: " + Integer.toString(mCanvasHeight)+" "+"Y: "+Float.toString(mThread.mControlPoint.getY()));
-			double velX = mThread.mControlPoint.getX()/mCanvasWidth;
-			double velY = mThread.mControlPoint.getY()/mCanvasHeight;
-			mContext.setVelocity(velX,velY);
+			float newY = mThread.mHomePosition.getmY() + y * (mCanvasHeight/(2*10));
+			float newX = mThread.mHomePosition.getmX() - x * (mCanvasWidth/(2*10));
+			mThread.mControlPoint.setY(newY);
+			mThread.mControlPoint.setX(newX);
+			mContext.setVelocity(x/10, -(y/10));
 		}
 		
 	}
@@ -284,8 +281,8 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback, 
 	class ControlPoint {
 		private volatile PointF position;
 		private Paint style;
-		private final static float RADIUS = 5;
-		private final static int COLOR = Color.YELLOW;
+		public final static float RADIUS = 5;
+		public final static int COLOR = Color.YELLOW;
 		
 		
 		public ControlPoint() {
@@ -358,9 +355,9 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback, 
 
 	class HomePosition{
 		private Paint style;
-		private final static float RADIUS = 25;
-		private final static float WIDTH = 5;
-		private final static int COLOR = Color.GRAY;
+		public final static float RADIUS = 25;
+		public final static float WIDTH = 5;
+		public final static int COLOR = Color.GRAY;
 		private float mX;
 		private float mY;
 		
