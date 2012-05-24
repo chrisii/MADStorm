@@ -273,7 +273,12 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback, 
 			float newX = mThread.mHomePosition.getmX() - x * (mCanvasWidth/(2*10));
 			mThread.mControlPoint.setY(newY);
 			mThread.mControlPoint.setX(newX);
-			mContext.setVelocity(x/10, -(y/10));
+			if (Math.abs(mThread.mControlPoint.getX() - mThread.mHomePosition.getmX()) < HomePosition.RADIUS
+					&& Math.abs(mThread.mControlPoint.getY() - mThread.mHomePosition.getmY()) < HomePosition.RADIUS){
+				mContext.setVelocity(0, 0);
+			}else{
+				mContext.setVelocity(x/10, -(y/10));				
+			}
 		}
 		
 	}
