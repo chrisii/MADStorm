@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+    <ListPreference 
+        android:title="@string/robot_type"
+        android:summary="@string/robot_type_summary"
+        android:key="robot_type"
+        android:defaultValue="3"
+        android:entries="@array/robots"
+        android:entryValues="@array/robot_keys"
+        />
+
+</PreferenceScreen>

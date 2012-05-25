@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="robots">
+        <item>CasterBot</item>
+        <item>MADbot</item>
+        <item>Shotbot</item>
+    </string-array>
+    <string-array name="robot_keys">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+</resources>

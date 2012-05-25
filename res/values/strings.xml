@@ -9,5 +9,7 @@
     <string name="title_paired_devices">Paired Devices</string>
 	<string name="none_paired">No devices have been paired</string>
 	<string name="select_device">select a device to connect</string>
-
+	<string name="robot_type">Robot Type</string>
+	<string name="robot_type_summary">Select the Type of Robot</string>
+	<string name="pref_title_preferences">Preferences</string>
 </resources>

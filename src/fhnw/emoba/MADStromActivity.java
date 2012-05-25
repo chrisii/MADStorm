@@ -11,11 +11,15 @@ import fhnw.emoba.R;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Message;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -51,6 +55,8 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 	private Robot mRobot;
 	/** Boolean indicating if robot is executing action*/
 	private boolean mRobotInAction = false;
+	/** field for accessing shared preferences of application */
+	private SharedPreferences mPreferences;
 	/** TAG for logging*/
 	public static final String TAG = MADStromActivity.class.getSimpleName();
 	
@@ -292,7 +298,10 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 	 */
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		if (keyCode == KeyEvent.KEYCODE_BACK) {
+		if (keyCode == KeyEvent.KEYCODE_MENU){
+			this.openOptionsMenu();
+		}
+		else if (keyCode == KeyEvent.KEYCODE_BACK) {
 			Log.v(TAG, "Back button has been pressed.. switching back to ConnectView");
 			Log.v(TAG, Integer.toString(mFlipper.getDisplayedChild()));
 			this.switchToConnectView();
@@ -389,16 +398,45 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 		}
 	}
 	
-	public void turn(int degree){
-		if (mRobot!=null){
-			mRobot.turn(degree);
-		}
-	}
-	
 	public void setEmergencyStop(){
 		if (mRobot!=null){
 			mRobot.emergencyStop(true);
 		}
 	}
+
+
+
+	/**
+	 * Inflates the menu which is activated by
+	 * the menu button
+	 */
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate option menu
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.menu, menu);
+		return true;
+	}
+
+
+
+	/**
+	 * Handles the option menu
+	 */
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// TODO Auto-generated method stub
+		switch (item.getItemId()) {
+		case R.id.preferences:
+			//start preferences activity
+			startActivity(new Intent(this,PrefActivity.class));
+			break;
+		default:
+			break;
+		}
+		return super.onOptionsItemSelected(item);
+	}
+	
+	
 	
 }

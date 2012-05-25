@@ -25,6 +25,12 @@
                   android:label="@string/select_device"
                   android:theme="@android:style/Theme.Dialog"
                   android:configChanges="orientation|keyboardHidden" />
+		<activity 
+		    android:name=".PrefActivity"
+		    android:label="@string/pref_title_preferences"
+		    android:screenOrientation="portrait"
+		    android:configChanges="orientation">
+		</activity>
     </application>
 
 </manifest>
