@@ -5,6 +5,8 @@ import com.bt.DeviceListActivity;
 import com.bt.mindstorm.LegoBrickSensorListener;
 import com.bt.mindstorm.nxt.NXT;
 import com.bt.mindstorm.robot.Robot;
+import com.bt.mindstorm.robot.model.NXTCastorBot;
+import com.bt.mindstorm.robot.model.NXTMADbot;
 import com.bt.mindstorm.robot.model.NXTShotBot;
 
 import fhnw.emoba.R;
@@ -15,6 +17,7 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -72,6 +75,7 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 		//check if application is running on a avd
 		//bluetooth is not available on a avd
 		onEmulator = "sdk".equals(Build.PRODUCT);
+		mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
 
 	}
@@ -166,24 +170,6 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 		//actionButton.setText(R.string.action_button);
 		mActionButton.setTextOff("Activate arm");
 		mActionButton.setTextOn("Deactivate arm");
-		/*actionButton.setOnTouchListener(new Button.OnTouchListener() {
-			
-			@Override
-			public boolean onTouch(View v, MotionEvent event) {
-				if (event.getAction() == MotionEvent.ACTION_DOWN){
-					Toast.makeText(MADStromActivity.this, "Action ON", Toast.LENGTH_SHORT).show();
-					if (mRobot!=null){
-						mRobot.action(true);
-					}
-				}else if (event.getAction() == MotionEvent.ACTION_POINTER_1_UP){
-					Toast.makeText(MADStromActivity.this, "Action OFF", Toast.LENGTH_SHORT).show();
-					if (mRobot!=null){
-						mRobot.action(false);
-					}
-				}
-				return true;
-			}
-		}); */
 		mActionButton.setOnClickListener(new Button.OnClickListener() {
 			
 			@Override
@@ -337,7 +323,22 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 		case BluetoothChannel.STATE_CONNECTED:
 			//TODO NXT connection successfully established
 			//TODO Instantiate and start robot 
-			mRobot = new NXTShotBot(nxt);
+			//read Preference and instantiate robot
+			String type = mPreferences.getString("robot_type", "3");
+			Log.v(TAG, type);
+			int id = Integer.parseInt(type);
+			switch (id) {
+			case 1:
+				mRobot = new NXTCastorBot(nxt);
+				break;
+			case 2:
+				mRobot = new NXTMADbot(nxt);
+			case 3:
+				mRobot = new NXTShotBot(nxt);
+			default:
+				break;
+			}
+			//mRobot = new NXTShotBot(nxt);
 			mRobot.start();
 			Log.v(TAG, "Sucessfully connected to robot");
 			//enable the action button in the controlView
