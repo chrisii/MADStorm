@@ -266,13 +266,20 @@ public class ControlView extends SurfaceView implements SurfaceHolder.Callback, 
 	public void onSensorChanged(SensorEvent event) {
 		float x = event.values[0];
 		float y  = event.values[1];
-		float z = event.values[2];
 		//calculate new coordinates of controlpoint
 		if (mThread!=null){
+			//calculates the new position of the control point based on the input
+			//from the accelerometer
+			//the values from the accelerometer range
+			//x-axis: -10 (left) to 10 (right)
+			//y-axis: 10 (bottom) to -10 (top)
+			//the division by (2*10) divides the size of the canvas in small sections
+			//each section corresponds to 1 step for the accelerometer (-10 to 10) range of 20
 			float newY = mThread.mHomePosition.getmY() + y * (mCanvasHeight/(2*10));
 			float newX = mThread.mHomePosition.getmX() - x * (mCanvasWidth/(2*10));
 			mThread.mControlPoint.setY(newY);
 			mThread.mControlPoint.setX(newX);
+			//in case the control point is near the home position slow down the robot
 			if (Math.abs(mThread.mControlPoint.getX() - mThread.mHomePosition.getmX()) < HomePosition.RADIUS
 					&& Math.abs(mThread.mControlPoint.getY() - mThread.mHomePosition.getmY()) < HomePosition.RADIUS){
 				mContext.setVelocity(0, 0);

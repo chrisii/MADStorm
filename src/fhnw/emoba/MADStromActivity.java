@@ -257,7 +257,7 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 		           String address = data.getExtras().getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
 		           Log.v(TAG, "Received Device Address "+ address);
 		           Toast.makeText(this, "Received Device Address "+address, Toast.LENGTH_SHORT).show();
-		           //TODO Connect to Bluetooth Channel with received device MAC address:
+		           //Connect to Bluetooth Channel with received device MAC address:
 		           //Instantiate NXT brick and register activity as lego brick listener
 		           nxt = new NXT();
 		           nxt.addSensorListener(this);
@@ -284,9 +284,12 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 	 */
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		//When the menu button is pressed inflate the options menu
 		if (keyCode == KeyEvent.KEYCODE_MENU){
 			this.openOptionsMenu();
 		}
+		//else if the back button is pressed switch from ControlView to Connectview
+		//if pressed again, quit the application
 		else if (keyCode == KeyEvent.KEYCODE_BACK) {
 			Log.v(TAG, "Back button has been pressed.. switching back to ConnectView");
 			Log.v(TAG, Integer.toString(mFlipper.getDisplayedChild()));
@@ -321,9 +324,8 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 			//this.switchToConnectView();
 			break;
 		case BluetoothChannel.STATE_CONNECTED:
-			//TODO NXT connection successfully established
-			//TODO Instantiate and start robot 
-			//read Preference and instantiate robot
+			//NXT connection successfully established
+			//read Preference and instantiate corresponding robot
 			String type = mPreferences.getString("robot_type", "3");
 			Log.v(TAG, type);
 			int id = Integer.parseInt(type);
@@ -338,8 +340,9 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 			default:
 				break;
 			}
-			//mRobot = new NXTShotBot(nxt);
+			//start the robot
 			mRobot.start();
+			displayToast("Robot is ready");
 			Log.v(TAG, "Sucessfully connected to robot");
 			//enable the action button in the controlView
 			mActionButton.setClickable(true);
@@ -393,12 +396,24 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 		});
 	}
 	
+	/**
+	 * Controls the speed and the direction of the robot by controlling the x and y speeds separately
+	 * @param velX : X-axis speed in the range of [-1,1]
+	 * @param velY : Y-axis speed in the range of [-1,1]
+	 * X-Axis goes from left to the right of the device
+	 * Y-Axis goes from bottom to the top of the device
+	 */
 	public void setVelocity(double velX, double velY){
 		if (mRobot!=null){
 			mRobot.setVelocity(velX, velY);
 		}
 	}
 	
+	/**
+	 * Engages the emergency stop of the robot. This method is called on exit
+	 * of the application so the robot won't drive around own his own.
+	 * It will immediately stop the robot, regardless on what he is doing
+	 */
 	public void setEmergencyStop(){
 		if (mRobot!=null){
 			mRobot.emergencyStop(true);
@@ -422,7 +437,8 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 
 
 	/**
-	 * Handles the option menu
+	 * Handles the option menu and starts the preferences activity
+	 * method is called when an item is clicked in the CreateOptionsMenu
 	 */
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
