@@ -8,7 +8,7 @@
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <application
-        android:icon="@drawable/mindstorm_nxt_logo"
+        android:icon="@drawable/mindstorm_logo"
         android:label="@string/app_name">
         <activity
             android:name="fhnw.emoba.MADStromActivity"
