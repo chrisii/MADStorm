@@ -176,10 +176,24 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 				Toast.makeText(MADStromActivity.this, "Action", Toast.LENGTH_SHORT).show();
 				//emits action on Robot, works as a toggle
 				//pressing it once: activates it, pressing it again deactivates it;
-				if (mRobot!=null){
-					mRobotInAction=!mRobotInAction;
-					mRobot.action(mRobotInAction);
-				}
+				new Thread(new Runnable() {
+					
+					@Override
+					public void run() {
+						if (mRobot!=null){
+							mRobotInAction=true;
+							mRobot.action(mRobotInAction);
+							try {
+								Thread.sleep(680);
+							} catch (InterruptedException e) {}
+							mRobotInAction=false;
+							mRobot.action(mRobotInAction);
+							
+						}
+						
+					}
+				}).start();
+				mActionButton.setChecked(false);
 			}
 		});
 		//set Initial State
