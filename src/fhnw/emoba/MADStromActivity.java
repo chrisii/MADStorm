@@ -59,6 +59,8 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 	private boolean mRobotInAction = false;
 	/** field for accessing shared preferences of application */
 	private SharedPreferences mPreferences;
+	/** sleep time to emulate single shot behaviour*/
+	private static final int SINGLE_SHOT = 680;
 	/** TAG for logging*/
 	public static final String TAG = MADStromActivity.class.getSimpleName();
 	
@@ -174,8 +176,8 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 			@Override
 			public void onClick(View v) {
 				Toast.makeText(MADStromActivity.this, "Action", Toast.LENGTH_SHORT).show();
-				//emits action on Robot, works as a toggle
-				//pressing it once: activates it, pressing it again deactivates it;
+				//emits action on Robot, only fires a single shot
+				//pressing ;
 				new Thread(new Runnable() {
 					
 					@Override
@@ -184,7 +186,7 @@ public class MADStromActivity extends Activity implements LegoBrickSensorListene
 							mRobotInAction=true;
 							mRobot.action(mRobotInAction);
 							try {
-								Thread.sleep(680);
+								Thread.sleep(SINGLE_SHOT);
 							} catch (InterruptedException e) {}
 							mRobotInAction=false;
 							mRobot.action(mRobotInAction);
